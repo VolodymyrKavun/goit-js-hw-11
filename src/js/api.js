@@ -5,22 +5,22 @@ const perPage = 10;
 
 export default class ApiService {
   constructor() {
-    // Зачення запиту
+    // Значення запиту
     this.meaning = '';
     // Номер сторінки
     this.page = 1;
   }
 
   // Отримує та повертає результат запиту
-  fetchImages() {
-    return fetch(
-      `${URL}?key=${API_KEY}&q=${this.meaning}&${options}&page=${this.page}&per_page=${perPage}`,
-    ).then(response => {
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      return response.json();
-    });
+  async fetchImages() {
+    try {
+      const responce = await fetch(
+        `${URL}?key=${API_KEY}&q=${this.meaning}&${options}&page=${this.page}&per_page=${perPage}`,
+      );
+      return await responce.json();
+    } catch (error) {
+      console.log(error.message);
+    }
   }
 
   // Добавляє сторінку
