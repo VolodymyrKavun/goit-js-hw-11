@@ -12,14 +12,43 @@ body {
   line-height: 1.5;
 }
 
+.button {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 #search-form {
-  font: inherit;
+  display: flex;
+  justify-content: center;
   padding: 8px;
-  max-width: 320px;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+  background-color: grey;
+}
+
+button[type='submit'] {
+  padding: 5px 15px;
+  background: orangered;
+  color: aliceblue;
+  border: 0 none;
+  cursor: pointer;
+  border-radius: 5px;
 }
 
 .gallery {
   display: flex;
   flex-wrap: wrap;
+}
+
+.load-more {
+  padding: 5px 15px;
+  background: orangered;
+  color: aliceblue;
+  border: 0 none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.is-hidden {
+  display: none;
 }

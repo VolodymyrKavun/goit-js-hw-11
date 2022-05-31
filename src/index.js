@@ -1,6 +1,5 @@
 import './css/styles.css';
 import getRefs from './js/refs';
-import debounce from 'lodash.debounce';
 import Notiflix from 'notiflix';
 import cardImagesTpl from './templates/card-images.hbs';
 import ApiService from './js/api';
@@ -21,22 +20,45 @@ function onFormSubmit(e) {
 
   apiService.query = e.currentTarget.elements.searchQuery.value.trim();
 
-  if (apiService.query === '') {
-    return Notiflix.Notify.failure(
-      'Sorry, there are no images matching your search query. Please try again.',
-    );
-  }
   apiService.resetPage();
-  apiService.fetchImages().then(renderMarkupImages);
+
+  apiService
+    .fetchImages()
+    .then(data => {
+      if (apiService.query === '' || data.totalHits === 0) {
+        return banMessage();
+      } else if (data.totalHits > 0) {
+        Notiflix.Notify.info(`Hooray! We found ${data.totalHits} images.`);
+        refs.buttonMore.classList.remove('is-hidden');
+      }
+
+      apiService.incrementPage();
+      return data.hits;
+    })
+    .then(renderMarkupImages)
+    .catch(error => {
+      console.log(error), banMessage();
+    });
 }
 
 function onLoadMore() {
-  if (apiService.query === '') {
-    return Notiflix.Notify.failure(
-      'Sorry, there are no images matching your search query. Please try again.',
-    );
-  }
-  apiService.fetchImages().then(renderMarkupImages);
+  apiService
+    .fetchImages()
+    .then(data => {
+      if (apiService.query === '' || data.totalHits === 0) {
+        return banMessage();
+      } else if (data.hits.length === 0) {
+        Notiflix.Notify.warning("We're sorry, but you've reached the end of search results.");
+        refs.buttonMore.classList.add('is-hidden');
+      }
+
+      apiService.incrementPage();
+      return data.hits;
+    })
+    .then(renderMarkupImages)
+    .catch(error => {
+      console.log(error), banMessage();
+    });
 }
 
 function renderMarkupImages(cards) {
@@ -45,4 +67,10 @@ function renderMarkupImages(cards) {
 
 function clearGalleryContainer() {
   refs.galleryEl.innerHTML = '';
+}
+
+function banMessage() {
+  return Notiflix.Notify.failure(
+    'Sorry, there are no images matching your search query. Please try again.',
+  );
 }
