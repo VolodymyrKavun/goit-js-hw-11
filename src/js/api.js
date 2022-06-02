@@ -1,7 +1,9 @@
+const axios = require('axios').default;
+
 const URL = 'https://pixabay.com/api/';
 const API_KEY = '27639319-39c0b1a02ab6ff7f7ad16bce1';
 const options = 'image_type=photo&orientation=horizontal&safesearch=true';
-const perPage = 10;
+const perPage = 40;
 
 export default class ApiService {
   constructor() {
@@ -14,10 +16,10 @@ export default class ApiService {
   // Отримує та повертає результат запиту
   async fetchImages() {
     try {
-      const responce = await fetch(
+      const responce = await axios.get(
         `${URL}?key=${API_KEY}&q=${this.meaning}&${options}&page=${this.page}&per_page=${perPage}`,
       );
-      return await responce.json();
+      return await responce.data;
     } catch (error) {
       console.log(error.message);
     }

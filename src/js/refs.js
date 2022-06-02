@@ -5,5 +5,6 @@ export default function getRefs() {
     buttonEl: document.querySelector('[type="submit"]'),
     buttonMore: document.querySelector('.load-more'),
     galleryEl: document.querySelector('.gallery'),
+    loadingEl: document.querySelector('.loading'),
   };
 }

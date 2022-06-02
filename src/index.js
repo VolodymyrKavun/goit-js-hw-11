@@ -3,6 +3,8 @@ import getRefs from './js/refs';
 import Notiflix from 'notiflix';
 import cardImagesTpl from './templates/card-images.hbs';
 import ApiService from './js/api';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 // Отримання доступу до елементів
 const refs = getRefs();
@@ -12,14 +14,18 @@ const apiService = new ApiService();
 
 // Вішання слухачів
 refs.formEl.addEventListener('submit', onFormSubmit);
-refs.buttonMore.addEventListener('click', onLoadMore);
+// refs.buttonMore.addEventListener('click', onLoadMore);
 
 // Первинне значення кнопки "load-more"
-refs.buttonMore.classList.add('is-hidden');
+// refs.buttonMore.classList.add('is-hidden');
+
+// SimpleLightbox
+let lightbox = new SimpleLightbox('.gallery a', { captionsData: 'alt', captionDelay: 500 });
 
 async function onFormSubmit(e) {
   e.preventDefault();
   clearGalleryContainer();
+  document.documentElement.scrollTop = 0;
 
   apiService.query = e.currentTarget.elements.searchQuery.value.trim();
 
@@ -39,6 +45,8 @@ async function onLoadMore() {
 
     apiService.incrementPage();
     renderMarkupImages(data.hits);
+    lightbox.refresh();
+    scrollLazy();
   } catch (error) {
     console.log(error), banMessage();
   }
@@ -61,26 +69,59 @@ function banMessage() {
   );
 }
 
+// Ф-я перевірки та рендеру
 async function checkSearchBtnAndRender() {
   const data = await apiService.fetchImages();
   if (apiService.query === '' || data.totalHits === 0) {
-    refs.buttonMore.classList.add('is-hidden');
+    // refs.buttonMore.classList.add('is-hidden');
     return banMessage();
   } else if (data.totalHits > 0) {
     Notiflix.Notify.info(`Hooray! We found ${data.totalHits} images.`);
-    refs.buttonMore.classList.remove('is-hidden');
+    // refs.buttonMore.classList.remove('is-hidden');
   }
   apiService.incrementPage();
   renderMarkupImages(data.hits);
+  lightbox.refresh();
 }
 
+// Ф-я перевірки Інпуту
 async function checkLoadInput() {
   const data = await apiService.fetchImages();
-  console.log(data);
   if (apiService.query === '' || data.totalHits === 0) {
     return banMessage();
   } else if (data.hits.length === 0) {
     Notiflix.Notify.warning("We're sorry, but you've reached the end of search results.");
-    refs.buttonMore.classList.add('is-hidden');
+    refs.loadingEl.classList.remove('show');
+    // refs.buttonMore.classList.add('is-hidden');
   }
+  refs.loadingEl.classList.remove('show');
+}
+
+// Ф-я плавного прокручування сторінки
+function scrollLazy() {
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
+
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: 'smooth',
+  });
+}
+
+// Infinite Scrolling
+window.addEventListener('scroll', () => {
+  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+
+  // console.log({ scrollTop, scrollHeight, clientHeight });
+  if (clientHeight + Math.round(scrollTop) >= scrollHeight) {
+    // show the loading animation
+    showLoading();
+  }
+});
+
+function showLoading() {
+  refs.loadingEl.classList.add('show');
+  // load more data
+  setTimeout(onLoadMore, 1000);
 }
