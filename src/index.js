@@ -14,10 +14,10 @@ const apiService = new ApiService();
 
 // Вішання слухачів
 refs.formEl.addEventListener('submit', onFormSubmit);
-// refs.buttonMore.addEventListener('click', onLoadMore);
+refs.buttonMore.addEventListener('click', onLoadMore);
 
 // Первинне значення кнопки "load-more"
-// refs.buttonMore.classList.add('is-hidden');
+refs.buttonMore.classList.add('is-hidden');
 
 // SimpleLightbox
 let lightbox = new SimpleLightbox('.gallery a', { captionsData: 'alt', captionDelay: 500 });
@@ -25,10 +25,12 @@ let lightbox = new SimpleLightbox('.gallery a', { captionsData: 'alt', captionDe
 async function onFormSubmit(e) {
   e.preventDefault();
   clearGalleryContainer();
-  document.documentElement.scrollTop = 0;
+  // document.documentElement.scrollTop = 0;
 
   apiService.query = e.currentTarget.elements.searchQuery.value.trim();
-
+  if (apiService.query === '') {
+    return banMessage();
+  }
   apiService.resetPage();
 
   try {
@@ -41,7 +43,11 @@ async function onFormSubmit(e) {
 async function onLoadMore() {
   try {
     const data = await apiService.fetchImages();
-    checkLoadInput();
+    if (data.hits.length === 0) {
+      Notiflix.Notify.warning("We're sorry, but you've reached the end of search results.");
+      // refs.loadingEl.classList.remove('show');
+      refs.buttonMore.classList.add('is-hidden');
+    }
 
     apiService.incrementPage();
     renderMarkupImages(data.hits);
@@ -72,29 +78,16 @@ function banMessage() {
 // Ф-я перевірки та рендеру
 async function checkSearchBtnAndRender() {
   const data = await apiService.fetchImages();
-  if (apiService.query === '' || data.totalHits === 0) {
-    // refs.buttonMore.classList.add('is-hidden');
+  if (data.totalHits === 0) {
+    refs.buttonMore.classList.add('is-hidden');
     return banMessage();
   } else if (data.totalHits > 0) {
     Notiflix.Notify.info(`Hooray! We found ${data.totalHits} images.`);
-    // refs.buttonMore.classList.remove('is-hidden');
+    refs.buttonMore.classList.remove('is-hidden');
   }
   apiService.incrementPage();
   renderMarkupImages(data.hits);
   lightbox.refresh();
-}
-
-// Ф-я перевірки Інпуту
-async function checkLoadInput() {
-  const data = await apiService.fetchImages();
-  if (apiService.query === '' || data.totalHits === 0) {
-    return banMessage();
-  } else if (data.hits.length === 0) {
-    Notiflix.Notify.warning("We're sorry, but you've reached the end of search results.");
-    refs.loadingEl.classList.remove('show');
-    // refs.buttonMore.classList.add('is-hidden');
-  }
-  refs.loadingEl.classList.remove('show');
 }
 
 // Ф-я плавного прокручування сторінки
@@ -110,18 +103,18 @@ function scrollLazy() {
 }
 
 // Infinite Scrolling
-window.addEventListener('scroll', () => {
-  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+// window.addEventListener('scroll', () => {
+//   const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
 
-  // console.log({ scrollTop, scrollHeight, clientHeight });
-  if (clientHeight + Math.round(scrollTop) >= scrollHeight) {
-    // show the loading animation
-    showLoading();
-  }
-});
+//   // console.log({ scrollTop, scrollHeight, clientHeight });
+//   if (clientHeight + Math.round(scrollTop) >= scrollHeight) {
+//     // show the loading animation
+//     showLoading();
+//   }
+// });
 
-function showLoading() {
-  refs.loadingEl.classList.add('show');
-  // load more data
-  setTimeout(onLoadMore, 1000);
-}
+// function showLoading() {
+//   refs.loadingEl.classList.add('show');
+//   // load more data
+//   setTimeout(onLoadMore, 1000);
+// }
